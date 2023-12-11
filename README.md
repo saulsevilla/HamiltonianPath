@@ -2,13 +2,14 @@
 Programa aplicando los conceptos de programación concurrente para encontrar un camino Hamiltoniano dentro de una gráfica generada aleatoriamente.
 
 -----------------------------------
-Universidad Nacional Autónoma de México
+**Universidad Nacional Autónoma de México**
 
-Licenciatura en Ciencia de Datos - FES Acatlán
+**Licenciatura en Ciencia de Datos - FES Acatlán**
 
-Autor: Sevilla Gallardo Saúl Sebastián
+**Autor: Sevilla Gallardo Saúl Sebastián**
 
 -----------------------------------
+## Índice
 1. [¿Qué es un camino Hamiltoniano?](#hampath)
 2. [Backtracking](#backtracking)
     1. [Funcionamiento del Backtracking](#funcionamiento-del-backtracking)
