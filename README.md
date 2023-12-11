@@ -32,7 +32,7 @@ Un camino Hamiltoniano para la primer gráfica podría ser: \[3, 2, 1, 4, 5\]. N
 
 Sin embargo, para la segunda gráfica no es posible encontrar un camino que pase por todos los nodos, entonces decimos que no es Hamiltoniana.
 
-[Más sobre caminos Hamiltoianos]((https://es.wikipedia.org/wiki/Camino_hamiltoniano)
+[Más sobre caminos Hamiltoianos](https://es.wikipedia.org/wiki/Camino_hamiltoniano)
 
 ## Backtracking
 
