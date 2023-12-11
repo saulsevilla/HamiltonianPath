@@ -11,9 +11,9 @@ Autor: Sevilla Gallardo Saúl Sebastián
 -----------------------------------
 1. [¿Qué es un camino Hamiltoniano?](#hampath)
 2. [Backtracking](#backtracking)
-    1. [Funcionamiento del Backtracking](#funcionamiento)
+    1. [Funcionamiento del Backtracking](#funcionamiento-del-backtracking)
     2. [Uso para encontrar un camino Hamiltoniano](#uso)
-    3. [Paralelización](#par)
+    3. [Paralelización](#paralelización)
 1. [Tiempo secuencial contra concurrente](#tiempo-secuencial-contra-concurrente)
     1. [Consideraciones](#consideraciones)
 1. [Ejecución](#ejecución)
@@ -33,11 +33,11 @@ Sin embargo, para la segunda gráfica no es posible encontrar un camino que pase
 
 [Más sobre caminos Hamiltoianos]((https://es.wikipedia.org/wiki/Camino_hamiltoniano)
 
-## Backtracking <a name="bt"></a>
+## Backtracking
 
 El backtracking es un enfoque algorítmico que busca soluciones a problemas de manera incremental, probando diversas opciones y retrocediendo cuando se encuentra en un callejón sin salida. Este método es especialmente útil para problemas combinatorios y de optimización.
 
-### Funcionamiento del Backtracking <a name="funcionamiento"></a>
+### Funcionamiento del Backtracking
 1. **Elección**: Se elige un nodo o una opción para avanzar.
 2. **Exploración**: Se explora la solución de manera recursiva.
 3. **Validación**: Se verifica si la solución parcial cumple con los requisitos.
@@ -77,7 +77,7 @@ public boolean visit(Integer v, List<Integer> path){
         return false;
     }
 ~~~
-### Paralelización <a name="par"></a>
+### Paralelización
 Afortunadamente el Bactracking es múy fácil de paralelizar, pues su naturaleza recursiva nos permite dividir los subprocesos en diferentes hilos. En este caso, suponiendo que la gráfica es de tamaño $n$, es decir, tiene $n$ vétrices, se usaron $n$ hilos donde cada uno inicia la búsqueda de un camino Hamiltoniano en un vértice diferente.
 
 ~~~java
