@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tutorial aquí</title>
+</head>
+<body>
+
+<h1>Tutorial</h1>
+
+<input id = unNombre class=CajasDeTexto>
+<BR>  <!-- comentario: la marca BR se usa como un "avance de línea -->
+<input type="submit" value = "Enviar mensaje al servidor" onclick="Enviar(unNombre.value)">
+
+<div id = resultado>
+
+</div>
+
+<canvas id="network" width="500" height="500"></canvas>
+
+<script>
+  function Enviar(num){
+    fetch( 'http://localhost:8080/?mensaje=' + num ) // URL reconocida por la aplicación java principal
+    .then(response => {
+        if (!response.ok) {
+			    throw new Error('La solicitud no pudo ser completada correctamente.');
+        }
+        return response.text();  // debe ser "text" en minúsculas
+        //return response.json(); // Si se espera una respuesta JSON
+    })
+    .then(data => {
+        resultado.innerHTML = "Hola " + num + ", el servidor respondio: <BR> <U>" + data+"</U>";
+        if (data[0]=='0'){
+          resultado.innerHTML = "La gráfica no es Hamiltoniana :(";
+        }else{
+          resultado.innerHTML = "La gráfica es Hamiltoniana :)";
+        }
+        var string = data.substring(1);
+        var graph = JSON.parse(string);
+        plot(graph)
+        // update()
+        //console.log(data); // Muestra los datos obtenidos en la "consola" del navegador, visible usando [F12]
+    })
+    .catch(error => {
+		alert('Hubo un error al realizar la solicitud: '+error);  // Muestra error en pantalla
+        // console.error('Hubo un error al realizar la solicitud:', error);  // Manda error a la consola del navegador
+    });
+}
+</script>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+/* global d3 */
+
+// var string = '{"nodes":[{"name": "1"}, {"name": "2"}, {"name": "3"}, {"name": "4"}, {"name": "5"}],"links": [{"source": 1, "target": 2}, {"source": 2, "target": 3}, {"source": 3, "target": 4}, {"source": 4, "target": 5}, {"source": 1, "target": 5}, {"source": 1, "target": 4}, {"source": 2, "target": 4}]}';
+
+// var graph = JSON.parse(string);
+
+var canvas = d3.select("#network"),
+  width = canvas.attr("width"),
+  height = canvas.attr("height"),
+  ctx = canvas.node().getContext("2d"),
+  r = 3,
+  color = d3.scaleOrdinal(d3.schemeCategory20),
+  simulation = d3.forceSimulation()
+    .force("x", d3.forceX(width/2))
+    .force("y", d3.forceY(height/2))
+    .force("collide", d3.forceCollide(r+1))
+    .force("charge", d3.forceManyBody()
+      .strength(-250))
+    .force("link", d3.forceLink()
+      .id(function (d) { return d.name; }));
+
+
+// "VotacionesSenado2017.json"
+// d3.json("test.json", function (err, graph) {
+function plot(graph){
+  // if (err) throw err;
+
+  simulation.nodes(graph.nodes);
+  simulation.force("link")
+    .links(graph.links);
+  simulation.on("tick", update);
+
+  canvas
+      .call(d3.drag()
+          .container(canvas.node())
+          .subject(dragsubject)
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+  function update() {
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.beginPath();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "#aaa";
+    graph.links.forEach(drawLink);
+    ctx.stroke();
+
+
+    ctx.globalAlpha = 1.0;
+    graph.nodes.forEach(drawNode);
+  }
+
+  function dragsubject() {
+    return simulation.find(d3.event.x, d3.event.y);
+  }
+}
+// });
+
+function dragstarted() {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d3.event.subject.fx = d3.event.subject.x;
+  d3.event.subject.fy = d3.event.subject.y;
+  console.log(d3.event.subject);
+}
+
+function dragged() {
+  d3.event.subject.fx = d3.event.x;
+  d3.event.subject.fy = d3.event.y;
+}
+
+function dragended() {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d3.event.subject.fx = null;
+  d3.event.subject.fy = null;
+}
+
+
+
+function drawNode(d) {
+  ctx.beginPath();
+//   ctx.fillStyle = color(d.party);
+  ctx.moveTo(d.x, d.y);
+  ctx.arc(d.x, d.y, r, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawLink(l) {
+  ctx.moveTo(l.source.x, l.source.y);
+  ctx.lineTo(l.target.x, l.target.y);
+  
+}
+
+
+
+
+</script>
+
+</body>
+</html>

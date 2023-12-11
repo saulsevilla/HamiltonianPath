@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Proyecto Final</title>
+</head>
+
+<body>
+
+<header>
+  <h1>Grafica hamiltoniana</h1>
+</header>
+
+<div class="corpse" width="500">
+  <div class="info">
+
+    <p class="texto"> Ingresa el tamaño de la gráfica</p>
+    <input id = entrada class=CajasDeTexto>
+
+    <BR>
+
+    <input type="submit" class = "boton" value = "Enviar mensaje al servidor" onclick="Enviar(entrada.value)">
+
+    <div id = resultado>
+
+    </div>
+
+    <p class="texto"> 
+      Esta página genera una gráfica aleatoria del tamano ingresado, para despues identificar si contiene un camino hamiltoniano, es decir, un camino que recorra todos los vértices una y solo una vez.
+    </p>
+
+  </div>
+</div>
+
+<canvas id="network" width= "500" height="500"></canvas>
+
+
+
+
+
+<style>
+
+header{
+  font-size: 20px;
+  background-image: linear-gradient(to right, #2f7e28, #b5d393);
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  height: 50px;
+  padding: 0%;
+  margin: 0%;
+}
+
+body{
+  background-color:rgb(188, 248, 188);
+}
+
+.corpse{
+  width: 50%;
+  padding: 0%;
+  display: flex;
+  margin: 0%;
+  padding: 0%;
+  flex-flow: row;
+  flex-grow: 1;
+  height:calc(100vh - 85px);
+  float: left;
+}
+
+.info{
+  float: left;
+  flex: 1 1 auto;
+  margin: 20px;
+}
+
+.network{
+  flex: 1 1 auto;
+  background-color: blue;
+  padding: 20px;
+  margin: 20px;
+  float: right;
+} 
+
+.texto{
+  margin-left: 10px;
+}
+
+.CajasDeTexto{
+  background-color: rgb(207, 232, 220);
+  border: 2px solid rgb(79, 185, 227);
+  height: 10px;
+  padding: 10px;
+  margin-left: 10px;
+  border-radius: 5px;
+}
+
+.boton{
+  background-color: rgba(0, 0, 0, 0);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 5px;
+  margin: 10px;
+  flex-flow: 1 1 auto;
+}
+
+
+</style>
+
+
+
+
+
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+<script>
+function Enviar(num){
+  // resultado.innerHTML = "Cargando";
+  // plot({"nodes":[], "links":[]});
+
+  fetch( 'http://localhost:8080/?mensaje=' + num )
+  .then(response => {
+      if (!response.ok) {
+        throw new Error('La solicitud no pudo ser completada correctamente.');
+      }
+      return response.text();
+  })
+  .then(data => {
+      resultado.innerHTML = "Hola " + num + ", el servidor respondio: <BR> " + data;
+
+      var dict = JSON.parse(data);
+      var texto = "";
+
+      if (dict.hamiltonian =='0'){
+        texto += "La gráfica no es Hamiltoniana :(\n";
+      }else{
+        texto += "La gráfica es Hamiltoniana :)\n";
+      }
+
+      texto += "Tiempo secuencial : "+dict.time.secuential+ "ms\n";
+      texto += "Tiempo concurrente : "+dict.time.concurrent+ "ms\n";
+      resultado.innerHTML = texto;
+      plot(dict.graph)
+      // update()
+      console.log(data); // Muestra los datos obtenidos en la "consola" del navegador, visible usando [F12]
+  })
+  .catch(error => {
+  alert('Hubo un error al realizar la solicitud: '+error);  // Muestra error en pantalla
+      // console.error('Hubo un error al realizar la solicitud:', error);  // Manda error a la consola del navegador
+  });
+}
+
+
+var canvas = d3.select("#network"),
+  arrowLength = 10,
+  width = canvas.attr("width"),
+  height = canvas.attr("height"),
+  ctx = canvas.node().getContext("2d"),
+  r = 5,
+  color = d3.scaleOrdinal(d3.schemeCategory20),
+  simulation = d3.forceSimulation()
+    .force("x", d3.forceX(width/2))
+    .force("y", d3.forceY(height/2))
+    .force("collide", d3.forceCollide(r+1))
+    .force("charge", d3.forceManyBody()
+      .strength(-350))
+    .force("link", d3.forceLink()
+      .id(function (d) { return d.name; }));
+
+function plot(graph){
+
+  d3.selectAll("g > *").remove();
+
+  simulation.nodes(graph.nodes);
+  simulation.force("link")
+    .links(graph.links);
+  simulation.on("tick", update);
+
+  canvas
+      .call(d3.drag()
+          .container(canvas.node())
+          .subject(dragsubject)
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+  function update() {
+
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.beginPath();
+
+    ctx.globalAlpha = 1.0;
+    ctx.beginPath()
+    ctx.strokeStyle = d3.color("hsl(87, 76%, 40%)");
+    ctx.fillStyle = d3.color("hsl(87, 76%, 40%)");
+    graph.links.filter(function(d){return d.color == "0"}).forEach(drawLink);
+    ctx.stroke();
+
+    ctx.globalAlpha = 5.0;
+    ctx.beginPath()
+    ctx.strokeStyle = d3.color("black");
+    ctx.fillStyle = d3.color("black");
+    graph.links.filter(function(d){return d.color == "1"}).forEach(drawLink);
+    ctx.stroke();
+
+    ctx.fillStyle = d3.color("black");
+    ctx.globalAlpha = 1.0;
+    graph.nodes.forEach(drawNode);
+    ctx.fill()
+  }
+
+  function dragsubject() {
+    return simulation.find(d3.event.x, d3.event.y);
+  }
+}
+
+function dragstarted() {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d3.event.subject.fx = d3.event.subject.x;
+  d3.event.subject.fy = d3.event.subject.y;
+  console.log(d3.event.subject);
+}
+
+function dragged() {
+  d3.event.subject.fx = d3.event.x;
+  d3.event.subject.fy = d3.event.y;
+}
+
+function dragended() {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d3.event.subject.fx = null;
+  d3.event.subject.fy = null;
+}
+
+function drawNode(d) {
+  ctx.beginPath();
+  ctx.moveTo(d.x, d.y);
+  ctx.arc(d.x, d.y, r, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawLink(l) {
+  ctx.moveTo(l.source.x, l.source.y);
+  ctx.lineTo(l.target.x, l.target.y);
+  // ctx.stroke();
+  arrowData = getArrowData(l.source.x, l.source.y, l.target.x, l.target.y);
+  ctx.moveTo(l.target.x, l.target.y);
+  ctx.lineTo(arrowData.left.x, arrowData.left.y);
+  // ctx.stroke();
+  ctx.moveTo(l.target.x, l.target.y);
+  ctx.lineTo(arrowData.right.x, arrowData.right.y);
+}
+
+function getArrowData(x0,y0, x1,y1) {
+    var t = Math.atan2(y1-y0, x1-x0),
+        dt = Math.PI*(7/8);
+    return {
+      right: {
+        x: arrowLength* Math.cos(t + dt) + x1,
+        y: arrowLength* Math.sin(t + dt) + y1
+      },
+      left: {
+        x: arrowLength* Math.cos(t - dt) + x1,
+        y: arrowLength* Math.sin(t - dt) + y1
+      }
+    };
+}
+</script>
+
+</body>
+</html>
